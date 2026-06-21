@@ -42,15 +42,22 @@ general_routes.post("/register", (req, res) => {
 /*public_users.get('/',function (req, res) {
    return res.status(200).json(books);
 });*/
-const axios = require("axios");
+general_routes.get("/books", async (req, res) => {
+    const fetchBooks = new Promise((resolve, reject) => {
+        if (books) {
+            resolve(books);
+        } else {
+            reject("No books found");
+        }
+    });
 
-general_routes.get("/books", async(req,res)=>{
-    try{
-        const response = await axios.get("http://localhost:5000/books");
-        return res.json(books);
-    }catch(error){
-        return res.status(500).json({message:"Error fetching books"});
-    }
+    await fetchBooks
+        .then((data) => {
+            return res.status(200).json(data);
+        })
+        .catch((err) => {
+            return res.status(500).json({ message: err });
+        });
 });
 
 // Get book details based on ISBN
@@ -61,16 +68,26 @@ general_routes.get("/books", async(req,res)=>{
     }
     return res.status(404).json({ message: "Book not found" });
  });*/
- general_routes.get('/isbn/:isbn',(req,res)=>{
+ general_routes.get('/isbn/:isbn', async (req, res) => {
     const isbn = req.params.isbn;
-    const book = books[isbn];
 
-    if (book) {
-        return res.json(book);
-    }
+    const fetchByISBN = new Promise((resolve, reject) => {
+        const book = books[isbn];
+        if (book) {
+            resolve(book);
+        } else {
+            reject("Book not found");
+        }
+    });
 
-    return res.status(404).json({ message: "Book not found" });
- });
+    await fetchByISBN
+        .then((data) => {
+            return res.status(200).json(data);
+        })
+        .catch((err) => {
+            return res.status(404).json({ message: err });
+        });
+});
   
 // Get book details based on author
 /*public_users.get('/author/:author',function (req, res) {
@@ -96,20 +113,25 @@ general_routes.get("/books", async(req,res)=>{
     message: "No books found for this author"
   });
 });*/
-general_routes.get('/author/:author', async(req,res)=>{
-    try{
-        const author = req.params.author;
-        let result = [];
+general_routes.get('/author/:author', async (req, res) => {
+    const author = req.params.author;
 
-        for(let key in books){
-            if(books[key].author === author){
-                result.push(books[key]);
-            }
+    const fetchByAuthor = new Promise((resolve, reject) => {
+        const result = Object.values(books).filter(b => b.author === author);
+        if (result.length > 0) {
+            resolve(result);
+        } else {
+            reject("No books found for this author");
         }
-        return res.json(result);
-    }catch(error){
-        return res.status(500).json({message:"Error"})
-    }
+    });
+
+    await fetchByAuthor
+        .then((data) => {
+            return res.status(200).json(data);
+        })
+        .catch((err) => {
+            return res.status(404).json({ message: err });
+        });
 });
 
 // Get all books based on title
@@ -136,21 +158,25 @@ general_routes.get('/author/:author', async(req,res)=>{
     message: "No books found for this title"
   });
 });*/
-general_routes.get("/title/:title", async (req, res) => {
-    try {
-        const title = req.params.title;
-        let result = [];
+general_routes.get('/title/:title', async (req, res) => {
+    const title = req.params.title;
 
-        for (let key in books) {
-            if (books[key].title === title) {
-                result.push(books[key]);
-            }
+    const fetchByTitle = new Promise((resolve, reject) => {
+        const result = Object.values(books).filter(b => b.title === title);
+        if (result.length > 0) {
+            resolve(result);
+        } else {
+            reject("No books found for this title");
         }
+    });
 
-        return res.json(result);
-    } catch (error) {
-        return res.status(500).json({ message: "Error" });
-    }
+    await fetchByTitle
+        .then((data) => {
+            return res.status(200).json(data);
+        })
+        .catch((err) => {
+            return res.status(404).json({ message: err });
+        });
 });
 
 //  Get book review
